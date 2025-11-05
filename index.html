@@ -216,6 +216,29 @@
         color: #e8e8e8;
     }
 
+    .category-select {
+        background: #2d2d2d;
+        border: 1px solid #3d3d3d;
+        color: #e8e8e8;
+        padding: 10px 20px;
+        border-radius: 15px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.2s ease;
+        min-width: 150px;
+    }
+
+    .category-select:hover {
+        background: #353535;
+        border-color: #4d4d4d;
+    }
+
+    .category-select:focus {
+        outline: none;
+        border-color: #5d5d5d;
+        background: #323232;
+    }
+
     textarea {
         resize: vertical;
         min-height: 80px;
@@ -426,24 +449,72 @@
         background: #4a2020;
     }
 
+    .subtask-toggle {
+        position: absolute;
+        bottom: -15px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 30px;
+        background: #2d2d2d;
+        border: 1px solid #3d3d3d;
+        border-radius: 0 0 12px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+        transition: background 0.2s ease;
+    }
+
+    .subtask-toggle:hover {
+        background: #353535;
+    }
+
+    .toggle-arrow {
+        color: #a8a8a8;
+        font-size: 14px;
+        user-select: none;
+        transition: transform 0.3s ease;
+    }
+
+    .toggle-arrow.expanded {
+        transform: rotate(180deg);
+    }
+
+    .subtasks-expanded {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #242424;
+        border: 1px solid #3d3d3d;
+        border-top: none;
+        border-radius: 0 0 16px 16px;
+        padding: 25px 20px 20px 20px;
+        z-index: 50;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        margin-top: 15px;
+    }
+
     .subtasks {
-        margin-top: 12px;
-        padding-left: 20px;
-        border-left: 2px solid #3d3d3d;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
     }
 
     .subtask-item {
-        background: #242424;
+        background: #2d2d2d;
         border-radius: 12px;
         padding: 15px;
-        margin-bottom: 8px;
+        margin-bottom: 0;
         border: 1px solid #3d3d3d;
         transition: all 0.2s ease;
         position: relative;
     }
 
     .subtask-item:hover {
-        background: #2d2d2d;
+        background: #353535;
         border-color: #4d4d4d;
     }
 
@@ -601,8 +672,10 @@
         
         <div class="divider"></div>
         
-        <div class="filters" id="filters">
-            <button class="filter-btn active" data-filter="all" onclick="filterByCategory('all')">Alle</button>
+        <div class="controls">
+            <select id="categoryFilter" class="category-select" onchange="handleCategoryChange()">
+                <option value="all">Alle Kategorien</option>
+            </select>
         </div>
         
         <div class="divider"></div>
@@ -871,6 +944,21 @@
         }
     }
 
+    // Toggle subtasks visibility
+    function toggleSubtasks(taskId, event) {
+        event.stopPropagation();
+        const subtasksDiv = document.getElementById(`subtasks-${taskId}`);
+        const arrow = document.getElementById(`arrow-${taskId}`);
+        
+        if (subtasksDiv.style.display === 'none' || !subtasksDiv.style.display) {
+            subtasksDiv.style.display = 'block';
+            arrow.classList.add('expanded');
+        } else {
+            subtasksDiv.style.display = 'none';
+            arrow.classList.remove('expanded');
+        }
+    }
+
     // Toggle menu visibility
     function toggleMenu(taskId, event) {
         event.stopPropagation();
@@ -1015,6 +1103,7 @@
             ? `${task.startTime} - ${task.endTime}` 
             : '';
         const subtasks = tasks.filter(t => t.parentId === task.id);
+        const hasSubtasks = subtasks.length > 0;
 
         return `
             <div class="task-item ${task.completed ? 'completed' : ''}" data-task-id="${task.id}">
@@ -1035,8 +1124,11 @@
                     <button class="task-menu-btn" onclick="openModal(${task.id}); event.stopPropagation();">Bearbeiten</button>
                     <button class="task-menu-btn task-menu-delete" onclick="deleteTask(${task.id}); event.stopPropagation();">Löschen</button>
                 </div>
-                ${subtasks.length > 0 ? `
-                    <div class="subtasks">
+                ${hasSubtasks ? `
+                    <div class="subtask-toggle" onclick="toggleSubtasks(${task.id}, event)">
+                        <span class="toggle-arrow" id="arrow-${task.id}">▼</span>
+                    </div>
+                    <div class="subtasks-expanded" id="subtasks-${task.id}" style="display: none;">
                         ${subtasks.map(st => createSubtaskHTML(st)).join('')}
                     </div>
                 ` : ''}
@@ -1076,9 +1168,13 @@
     // Filter by category
     function filterByCategory(category) {
         currentFilter = category;
-        document.querySelectorAll('.filters .filter-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.filter === category);
-        });
+        renderTasks();
+    }
+
+    // Handle category dropdown change
+    function handleCategoryChange() {
+        const select = document.getElementById('categoryFilter');
+        currentFilter = select.value;
         renderTasks();
     }
 
@@ -1091,17 +1187,21 @@
         renderTasks();
     }
 
-    // Update filter buttons
+    // Update filter dropdown
     function updateFilters() {
-        const categories = [...new Set(tasks.map(t => t.category))];
-        const filtersContainer = document.getElementById('filters');
+        const select = document.getElementById('categoryFilter');
+        const currentValue = select.value;
         
-        filtersContainer.innerHTML = `
-            <button class="filter-btn ${currentFilter === 'all' ? 'active' : ''}" data-filter="all" onclick="filterByCategory('all')">Alle</button>
-            ${categories.map(cat => `
-                <button class="filter-btn ${currentFilter === cat ? 'active' : ''}" data-filter="${cat}" onclick="filterByCategory('${cat}')">${cat}</button>
-            `).join('')}
-        `;
+        select.innerHTML = '<option value="all">Alle Kategorien</option>' +
+            categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+        
+        // Restore selection if category still exists
+        if (currentValue && (currentValue === 'all' || categories.includes(currentValue))) {
+            select.value = currentValue;
+        } else {
+            select.value = 'all';
+            currentFilter = 'all';
+        }
     }
 
     // Export data
