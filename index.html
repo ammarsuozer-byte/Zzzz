@@ -13,6 +13,10 @@
         }
 
 ```
+    html {
+        background: #111111;
+    }
+
     body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         background: #111111;
@@ -41,22 +45,23 @@
 
     .controls {
         display: flex;
-        gap: 15px;
-        margin-bottom: 30px;
-        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 0;
         justify-content: center;
+        flex-wrap: nowrap;
     }
 
     .btn {
         background: #2d2d2d;
         border: 1px solid #3d3d3d;
         color: #e8e8e8;
-        padding: 12px 24px;
+        padding: 10px 20px;
         border-radius: 20px;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 500;
         transition: all 0.2s ease;
+        white-space: nowrap;
     }
 
     .btn:hover {
@@ -87,9 +92,9 @@
     .filters {
         display: flex;
         gap: 10px;
-        margin-bottom: 30px;
+        margin-bottom: 0;
         justify-content: center;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
     }
 
     .filter-btn {
@@ -101,6 +106,7 @@
         cursor: pointer;
         font-size: 13px;
         transition: all 0.2s ease;
+        white-space: nowrap;
     }
 
     .filter-btn.active {
@@ -123,7 +129,22 @@
         display: flex;
         gap: 10px;
         justify-content: center;
+        margin-bottom: 0;
+    }
+
+    .all-controls-wrapper {
+        display: flex;
+        gap: 15px;
         margin-bottom: 30px;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .divider {
+        width: 1px;
+        height: 30px;
+        background: #3d3d3d;
     }
 
     .modal {
@@ -464,27 +485,32 @@
         </header>
 
 ```
-    <div class="controls">
-        <button class="btn btn-primary" onclick="openModal()">+ Neue Aufgabe</button>
-        <button class="btn" onclick="exportData()">Exportieren</button>
-        <button class="btn" onclick="document.getElementById('importFile').click()">Importieren</button>
-        <input type="file" id="importFile" accept=".json" onchange="importData(event)">
-    </div>
-
-    <div class="filters" id="filters">
-        <button class="filter-btn active" data-filter="all" onclick="filterByCategory('all')">Alle</button>
-    </div>
-
-    <div class="sort-controls">
-        <button class="filter-btn active" onclick="setSortMode('deadline')">Nach Deadline</button>
-        <button class="filter-btn" onclick="setSortMode('category')">Nach Kategorie</button>
+    <div class="all-controls-wrapper">
+        <div class="controls">
+            <button class="btn btn-primary" onclick="openModal()">+ Neue Aufgabe</button>
+            <button class="btn" onclick="exportData()">Exportieren</button>
+            <button class="btn" onclick="document.getElementById('importFile').click()">Importieren</button>
+            <input type="file" id="importFile" accept=".json" onchange="importData(event)">
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="filters" id="filters">
+            <button class="filter-btn active" data-filter="all" onclick="filterByCategory('all')">Alle</button>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="sort-controls">
+            <button class="filter-btn active" onclick="setSortMode('deadline')">Nach Deadline</button>
+            <button class="filter-btn" onclick="setSortMode('category')">Nach Kategorie</button>
+        </div>
     </div>
 
     <div class="tasks-container" id="tasksContainer">
         <div class="empty-state">
             <div class="empty-state-icon">📋</div>
             <p>Keine Aufgaben vorhanden</p>
-            <p style="font-size: 12px; margin-top: 10px;">Erstelle deine erste Aufgabe</p>
         </div>
     </div>
 </div>
@@ -673,7 +699,6 @@
                 <div class="empty-state">
                     <div class="empty-state-icon">📋</div>
                     <p>Keine Aufgaben vorhanden</p>
-                    <p style="font-size: 12px; margin-top: 10px;">Erstelle deine erste Aufgabe</p>
                 </div>
             `;
             return;
