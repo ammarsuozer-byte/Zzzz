@@ -451,29 +451,32 @@
 
     .subtask-toggle {
         position: absolute;
-        bottom: -15px;
+        bottom: -12px;
         left: 50%;
         transform: translateX(-50%);
-        width: 40px;
-        height: 30px;
+        width: 32px;
+        height: 24px;
         background: #2d2d2d;
         border: 1px solid #3d3d3d;
-        border-radius: 0 0 12px 12px;
+        border-top: none;
+        border-radius: 0 0 8px 8px;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         z-index: 10;
-        transition: background 0.2s ease;
+        transition: all 0.2s ease;
+        opacity: 0.6;
     }
 
     .subtask-toggle:hover {
+        opacity: 1;
         background: #353535;
     }
 
     .toggle-arrow {
-        color: #a8a8a8;
-        font-size: 14px;
+        color: #888888;
+        font-size: 10px;
         user-select: none;
         transition: transform 0.3s ease;
     }
@@ -484,17 +487,16 @@
 
     .subtasks-expanded {
         position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
+        top: calc(100% - 1px);
+        left: -1px;
+        right: -1px;
         background: #242424;
         border: 1px solid #3d3d3d;
         border-top: none;
         border-radius: 0 0 16px 16px;
-        padding: 25px 20px 20px 20px;
+        padding: 20px 20px 15px 20px;
         z-index: 50;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-        margin-top: 15px;
     }
 
     .subtasks {
@@ -532,6 +534,19 @@
         padding: 4px 10px;
         background: #353535;
         border-radius: 8px;
+        display: inline-block;
+        width: fit-content;
+    }
+
+    .task-description {
+        font-size: 12px;
+        color: #888888;
+        line-height: 1.4;
+        margin-top: 4px;
+    }
+
+    .task-description-placeholder {
+        height: 17px;
     }
 
     .deadline-badge {
@@ -593,6 +608,81 @@
         .time-row {
             grid-template-columns: 1fr;
         }
+
+        .all-controls-wrapper {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .divider {
+            display: none;
+        }
+
+        .btn {
+            font-size: 12px;
+            padding: 8px 16px;
+        }
+
+        .filter-btn {
+            font-size: 12px;
+            padding: 8px 16px;
+        }
+
+        .category-select {
+            font-size: 12px;
+            padding: 8px 16px;
+            min-width: 120px;
+        }
+
+        .task-item {
+            padding: 15px;
+            font-size: 13px;
+        }
+
+        .task-title {
+            font-size: 14px;
+        }
+
+        .task-time {
+            font-size: 12px;
+        }
+
+        .task-description {
+            font-size: 11px;
+        }
+
+        .deadline-badge {
+            font-size: 10px;
+            padding: 3px 8px;
+        }
+
+        .task-category-label {
+            font-size: 10px;
+            padding: 3px 8px;
+        }
+    }
+
+    @media (max-width: 500px) {
+        .all-controls-wrapper {
+            gap: 8px;
+        }
+
+        .btn, .filter-btn, .category-select {
+            font-size: 11px;
+            padding: 6px 12px;
+        }
+
+        .task-item {
+            padding: 12px;
+        }
+
+        .task-title {
+            font-size: 13px;
+        }
+
+        h1 {
+            font-size: 28px;
+        }
     }
 
     /* iPad Landscape Optimization */
@@ -621,10 +711,6 @@
             margin-bottom: 0;
         }
 
-        .task-item {
-            font-size: 14px;
-        }
-
         .controls {
             margin-bottom: 25px;
         }
@@ -643,6 +729,13 @@
 
         .container {
             max-width: 98%;
+        }
+    }
+
+    /* Single column for very small screens */
+    @media (max-width: 768px) {
+        .tasks-container {
+            grid-template-columns: 1fr !important;
         }
     }
 </style>
@@ -1110,11 +1203,12 @@
                 <div class="task-header">
                     <div class="task-content" onclick="toggleTask(${task.id})">
                         <div class="task-title">${task.title}</div>
+                        <div class="task-category-label">${task.category}</div>
                         <div class="task-deadline">
                             <span class="deadline-badge ${urgency.class}">${urgency.date}</span>
                         </div>
                         ${timeInfo ? `<div class="task-time">${timeInfo}</div>` : '<div class="task-time-placeholder"></div>'}
-                        ${sortMode === 'deadline' ? `<div class="task-category-label">${task.category}</div>` : ''}
+                        ${task.description ? `<div class="task-description">${task.description}</div>` : '<div class="task-description-placeholder"></div>'}
                     </div>
                     <div class="task-menu-trigger" onclick="toggleMenu(${task.id}, event)">
                         <span class="menu-dots">⋯</span>
