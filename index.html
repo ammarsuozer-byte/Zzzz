@@ -257,6 +257,26 @@
         gap: 8px;
     }
 
+    .subtask-field {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        padding: 10px;
+        background: #242424;
+        border: 1px solid #3d3d3d;
+        border-radius: 12px;
+    }
+
+    .subtask-field input {
+        flex: 1;
+        margin: 0;
+    }
+
+    .subtask-field button {
+        padding: 8px 12px;
+        min-width: auto;
+    }
+
     .tasks-container {
         display: flex;
         flex-direction: column;
@@ -617,28 +637,6 @@
             </div>
 
             <div class="form-group">
-                <label for="taskType">Typ</label>
-                <select id="taskType" required onchange="handleTypeChange()">
-                    <option value="Aufgabe">Aufgabe</option>
-                    <option value="Termin">Termin</option>
-                </select>
-            </div>
-
-            <div class="form-group" id="parentTaskGroup" style="display: none;">
-                <label for="parentTask">Übergeordneter Termin</label>
-                <select id="parentTask">
-                    <option value="">Keine</option>
-                </select>
-            </div>
-
-            <div class="form-group" id="parentSubtaskGroup" style="display: none;">
-                <label for="parentSubtask">Übergeordnete Aufgabe</label>
-                <select id="parentSubtask">
-                    <option value="">Keine</option>
-                </select>
-            </div>
-
-            <div class="form-group">
                 <label for="taskCategory">Kategorie</label>
                 <div style="display: flex; gap: 10px;">
                     <select id="taskCategory" required style="flex: 1;">
@@ -664,6 +662,13 @@
                         <input type="time" id="taskEndTime">
                     </div>
                 </div>
+            </div>
+
+            <div class="form-group" id="subtasksSection">
+                <label>Unteraufgaben</label>
+                <div id="subtasksList" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
+                </div>
+                <button type="button" class="btn" onclick="addSubtaskField()" style="width: 100%;">+ Unteraufgabe hinzufügen</button>
             </div>
 
             <div class="modal-actions">
@@ -735,7 +740,9 @@
         const form = document.getElementById('taskForm');
         const title = document.getElementById('modalTitle');
 
-        updateParentSelects();
+        // Clear subtasks list
+        document.getElementById('subtasksList').innerHTML = '';
+        subtaskCounter = 0;
 
         if (taskId) {
             const task = tasks.find(t => t.id === taskId);
@@ -743,22 +750,13 @@
                 title.textContent = 'Aufgabe bearbeiten';
                 document.getElementById('taskTitle').value = task.title;
                 document.getElementById('taskDescription').value = task.description || '';
-                document.getElementById('taskType').value = task.type || 'Aufgabe';
                 document.getElementById('taskCategory').value = task.category;
                 document.getElementById('taskDeadline').value = task.deadline;
                 document.getElementById('taskStartTime').value = task.startTime || '';
                 document.getElementById('taskEndTime').value = task.endTime || '';
                 
-                handleTypeChange();
-                
-                if (task.parentId) {
-                    const parent = tasks.find(t => t.id === task.parentId);
-                    if (parent && parent.type === 'Termin') {
-                        document.getElementById('parentTask').value = task.parentId;
-                    } else if (parent && parent.type === 'Aufgabe') {
-                        document.getElementById('parentSubtask').value = task.parentId;
-                    }
-                }
+                // Load existing subtasks
+                loadSubtasksToForm(taskId);
                 
                 editingTaskId = taskId;
             }
@@ -766,7 +764,6 @@
             title.textContent = 'Neue Aufgabe';
             form.reset();
             editingTaskId = null;
-            handleTypeChange();
         }
 
         modal.classList.add('active');
@@ -784,25 +781,14 @@
     document.getElementById('taskForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
-        const taskType = document.getElementById('taskType').value;
-        let parentId = null;
-        
-        if (taskType === 'Aufgabe') {
-            const parentTask = document.getElementById('parentTask').value;
-            const parentSubtask = document.getElementById('parentSubtask').value;
-            parentId = parentTask || parentSubtask || null;
-        }
-
         const task = {
             id: editingTaskId || Date.now(),
             title: document.getElementById('taskTitle').value,
             description: document.getElementById('taskDescription').value,
-            type: taskType,
             category: document.getElementById('taskCategory').value,
             deadline: document.getElementById('taskDeadline').value,
             startTime: document.getElementById('taskStartTime').value,
             endTime: document.getElementById('taskEndTime').value,
-            parentId: parentId,
             completed: false,
             createdAt: editingTaskId ? tasks.find(t => t.id === editingTaskId).createdAt : new Date().toISOString()
         };
@@ -810,15 +796,70 @@
         if (editingTaskId) {
             const index = tasks.findIndex(t => t.id === editingTaskId);
             tasks[index] = task;
+            
+            // Remove old subtasks
+            tasks = tasks.filter(t => t.parentId !== editingTaskId);
         } else {
             tasks.push(task);
         }
+
+        // Add subtasks
+        const subtaskInputs = document.querySelectorAll('.subtask-input');
+        subtaskInputs.forEach(input => {
+            const subtaskTitle = input.value.trim();
+            if (subtaskTitle) {
+                const subtask = {
+                    id: Date.now() + Math.random(),
+                    title: subtaskTitle,
+                    description: '',
+                    category: task.category,
+                    deadline: task.deadline,
+                    startTime: '',
+                    endTime: '',
+                    parentId: task.id,
+                    completed: false,
+                    createdAt: new Date().toISOString()
+                };
+                tasks.push(subtask);
+            }
+        });
 
         saveTasks();
         renderTasks();
         updateFilters();
         closeModal();
     });
+
+    let subtaskCounter = 0;
+
+    function addSubtaskField(title = '') {
+        const list = document.getElementById('subtasksList');
+        const id = `subtask-${subtaskCounter++}`;
+        
+        const fieldHtml = `
+            <div class="subtask-field" id="field-${id}">
+                <input type="text" class="subtask-input" placeholder="Unteraufgabe" value="${title}">
+                <button type="button" class="btn" onclick="removeSubtaskField('field-${id}')">Löschen</button>
+            </div>
+        `;
+        
+        list.insertAdjacentHTML('beforeend', fieldHtml);
+    }
+
+    function removeSubtaskField(fieldId) {
+        const field = document.getElementById(fieldId);
+        if (field) field.remove();
+    }
+
+    function loadSubtasksToForm(taskId) {
+        const subtasks = tasks.filter(t => t.parentId === taskId);
+        const list = document.getElementById('subtasksList');
+        list.innerHTML = '';
+        
+        subtasks.forEach(subtask => {
+            addSubtaskField(subtask.title);
+        });
+    }
 
     // Toggle task completion
     function toggleTask(taskId) {
@@ -877,8 +918,17 @@
 
     // Delete task
     function deleteTask(taskId) {
-        if (confirm('Möchtest du diese Aufgabe wirklich löschen?')) {
-            tasks = tasks.filter(t => t.id !== taskId);
+        const task = tasks.find(t => t.id === taskId);
+        const hasSubtasks = tasks.some(t => t.parentId === taskId);
+        
+        let confirmMessage = 'Möchtest du diese Aufgabe wirklich löschen?';
+        if (hasSubtasks) {
+            confirmMessage = 'Möchtest du diese Aufgabe und alle Unteraufgaben wirklich löschen?';
+        }
+        
+        if (confirm(confirmMessage)) {
+            // Delete the task and all its subtasks
+            tasks = tasks.filter(t => t.id !== taskId && t.parentId !== taskId);
             saveTasks();
             renderTasks();
             updateFilters();
@@ -964,15 +1014,13 @@
         const timeInfo = task.startTime && task.endTime 
             ? `${task.startTime} - ${task.endTime}` 
             : '';
-        const isTermin = task.type === 'Termin';
-        const titleClass = isTermin ? 'style="text-decoration: underline;"' : '';
         const subtasks = tasks.filter(t => t.parentId === task.id);
 
         return `
             <div class="task-item ${task.completed ? 'completed' : ''}" data-task-id="${task.id}">
                 <div class="task-header">
                     <div class="task-content" onclick="toggleTask(${task.id})">
-                        <div class="task-title" ${titleClass}>${task.title}</div>
+                        <div class="task-title">${task.title}</div>
                         <div class="task-deadline">
                             <span class="deadline-badge ${urgency.class}">${urgency.date}</span>
                         </div>
@@ -1107,36 +1155,6 @@
     function updateCategorySelect() {
         const select = document.getElementById('taskCategory');
         select.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
-    }
-
-    function handleTypeChange() {
-        const type = document.getElementById('taskType').value;
-        const parentTaskGroup = document.getElementById('parentTaskGroup');
-        const parentSubtaskGroup = document.getElementById('parentSubtaskGroup');
-        
-        if (type === 'Aufgabe') {
-            parentTaskGroup.style.display = 'block';
-            parentSubtaskGroup.style.display = 'block';
-            updateParentSelects();
-        } else {
-            parentTaskGroup.style.display = 'none';
-            parentSubtaskGroup.style.display = 'none';
-        }
-    }
-
-    function updateParentSelects() {
-        const parentTaskSelect = document.getElementById('parentTask');
-        const parentSubtaskSelect = document.getElementById('parentSubtask');
-        
-        // Get all Termine for parent task dropdown
-        const termine = tasks.filter(t => t.type === 'Termin' && !t.completed);
-        parentTaskSelect.innerHTML = '<option value="">Keine</option>' + 
-            termine.map(t => `<option value="${t.id}">${t.title}</option>`).join('');
-        
-        // Get all Aufgaben without parents for subtask dropdown
-        const aufgaben = tasks.filter(t => t.type === 'Aufgabe' && !t.parentId && !t.completed);
-        parentSubtaskSelect.innerHTML = '<option value="">Keine</option>' + 
-            aufgaben.map(t => `<option value="${t.id}">${t.title}</option>`).join('');
     }
 
     function openCategoryManager() {
