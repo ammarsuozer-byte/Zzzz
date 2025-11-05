@@ -294,30 +294,16 @@
         margin-bottom: 12px;
         border: 1px solid #3d3d3d;
         transition: all 0.2s ease;
-        cursor: pointer;
+        position: relative;
     }
 
     .task-item:hover {
         background: #353535;
         border-color: #4d4d4d;
-        transform: translateX(5px);
     }
 
-    .task-item:active {
-        background: #252525;
-        border-color: #4d4d4d;
-    }
-
-    .task-item:active .task-title {
-        color: #ffffff;
-    }
-
-    .task-item:active .task-description {
-        color: #d8d8d8;
-    }
-
-    .task-item:active .task-meta {
-        color: #c8c8c8;
+    .task-item:active .task-content {
+        opacity: 0.8;
     }
 
     .task-item.completed {
@@ -332,40 +318,121 @@
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        margin-bottom: 10px;
+        gap: 15px;
+    }
+
+    .task-content {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        cursor: pointer;
     }
 
     .task-title {
         font-size: 16px;
         font-weight: 500;
         color: #e8e8e8;
-        margin-bottom: 8px;
     }
 
-    .task-description {
-        font-size: 13px;
-        color: #a8a8a8;
-        margin-bottom: 12px;
-        line-height: 1.5;
-    }
-
-    .task-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        font-size: 12px;
-        color: #888888;
-    }
-
-    .task-meta-item {
+    .task-deadline {
         display: flex;
         align-items: center;
-        gap: 5px;
     }
 
     .task-time {
         color: #a8a8a8;
-        font-size: 12px;
+        font-size: 13px;
+    }
+
+    .task-time-placeholder {
+        height: 19px;
+    }
+
+    .task-menu-trigger {
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 8px;
+        transition: background 0.2s ease;
+        user-select: none;
+    }
+
+    .task-menu-trigger:hover {
+        background: #454545;
+    }
+
+    .menu-dots {
+        font-size: 20px;
+        color: #a8a8a8;
+        line-height: 1;
+        display: block;
+    }
+
+    .task-menu {
+        position: absolute;
+        top: 50px;
+        right: 20px;
+        background: #242424;
+        border: 1px solid #3d3d3d;
+        border-radius: 12px;
+        padding: 8px;
+        z-index: 100;
+        min-width: 140px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+
+    .task-menu-btn {
+        width: 100%;
+        background: transparent;
+        border: none;
+        color: #e8e8e8;
+        padding: 10px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        text-align: left;
+        transition: background 0.2s ease;
+    }
+
+    .task-menu-btn:hover {
+        background: #353535;
+    }
+
+    .task-menu-delete {
+        color: #ff6b6b;
+    }
+
+    .task-menu-delete:hover {
+        background: #4a2020;
+    }
+
+    .subtasks {
+        margin-top: 12px;
+        padding-left: 20px;
+        border-left: 2px solid #3d3d3d;
+    }
+
+    .subtask-item {
+        background: #242424;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 8px;
+        border: 1px solid #3d3d3d;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+    .subtask-item:hover {
+        background: #2d2d2d;
+        border-color: #4d4d4d;
+    }
+
+    .subtask-item.completed {
+        opacity: 0.5;
+    }
+
+    .subtask-item.completed .task-title {
+        text-decoration: line-through;
     }
 
     .task-category-label {
@@ -374,53 +441,6 @@
         padding: 4px 10px;
         background: #353535;
         border-radius: 8px;
-    }
-
-    .task-type-badge {
-        display: inline-block;
-        padding: 4px 10px;
-        border-radius: 8px;
-        font-size: 11px;
-        font-weight: 500;
-        background: #353535;
-        color: #a8a8a8;
-        border: 1px solid #4d4d4d;
-    }
-
-    .task-type-appointment {
-        background: #2a3a4a;
-        color: #6bb8ff;
-        border-color: #3a5a7a;
-    }
-
-    .task-actions {
-        display: flex;
-        gap: 8px;
-    }
-
-    .task-btn {
-        background: #353535;
-        border: none;
-        color: #e8e8e8;
-        padding: 6px 12px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 11px;
-        transition: all 0.2s ease;
-    }
-
-    .task-btn:hover {
-        background: #454545;
-    }
-
-    .task-btn:active {
-        background: #252525;
-        color: #ffffff;
-    }
-
-    .task-btn-delete:hover {
-        background: #4a2020;
-        color: #ff6b6b;
     }
 
     .deadline-badge {
@@ -555,6 +575,12 @@
         
         <div class="divider"></div>
         
+        <div class="controls">
+            <button class="filter-btn active" id="activeToggle" onclick="toggleActiveFilter()">Nur Aktive</button>
+        </div>
+        
+        <div class="divider"></div>
+        
         <div class="filters" id="filters">
             <button class="filter-btn active" data-filter="all" onclick="filterByCategory('all')">Alle</button>
         </div>
@@ -592,9 +618,23 @@
 
             <div class="form-group">
                 <label for="taskType">Typ</label>
-                <select id="taskType" required>
+                <select id="taskType" required onchange="handleTypeChange()">
                     <option value="Aufgabe">Aufgabe</option>
                     <option value="Termin">Termin</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="parentTaskGroup" style="display: none;">
+                <label for="parentTask">Übergeordneter Termin</label>
+                <select id="parentTask">
+                    <option value="">Keine</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="parentSubtaskGroup" style="display: none;">
+                <label for="parentSubtask">Übergeordnete Aufgabe</label>
+                <select id="parentSubtask">
+                    <option value="">Keine</option>
                 </select>
             </div>
 
@@ -662,6 +702,8 @@
     let currentFilter = 'all';
     let sortMode = 'deadline';
     let editingTaskId = null;
+    let showOnlyActive = true;
+    let openMenuId = null;
 
     // Load tasks from localStorage
     function loadTasks() {
@@ -693,6 +735,8 @@
         const form = document.getElementById('taskForm');
         const title = document.getElementById('modalTitle');
 
+        updateParentSelects();
+
         if (taskId) {
             const task = tasks.find(t => t.id === taskId);
             if (task) {
@@ -704,12 +748,25 @@
                 document.getElementById('taskDeadline').value = task.deadline;
                 document.getElementById('taskStartTime').value = task.startTime || '';
                 document.getElementById('taskEndTime').value = task.endTime || '';
+                
+                handleTypeChange();
+                
+                if (task.parentId) {
+                    const parent = tasks.find(t => t.id === task.parentId);
+                    if (parent && parent.type === 'Termin') {
+                        document.getElementById('parentTask').value = task.parentId;
+                    } else if (parent && parent.type === 'Aufgabe') {
+                        document.getElementById('parentSubtask').value = task.parentId;
+                    }
+                }
+                
                 editingTaskId = taskId;
             }
         } else {
             title.textContent = 'Neue Aufgabe';
             form.reset();
             editingTaskId = null;
+            handleTypeChange();
         }
 
         modal.classList.add('active');
@@ -727,15 +784,25 @@
     document.getElementById('taskForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
+        const taskType = document.getElementById('taskType').value;
+        let parentId = null;
+        
+        if (taskType === 'Aufgabe') {
+            const parentTask = document.getElementById('parentTask').value;
+            const parentSubtask = document.getElementById('parentSubtask').value;
+            parentId = parentTask || parentSubtask || null;
+        }
+
         const task = {
             id: editingTaskId || Date.now(),
             title: document.getElementById('taskTitle').value,
             description: document.getElementById('taskDescription').value,
-            type: document.getElementById('taskType').value,
+            type: taskType,
             category: document.getElementById('taskCategory').value,
             deadline: document.getElementById('taskDeadline').value,
             startTime: document.getElementById('taskStartTime').value,
             endTime: document.getElementById('taskEndTime').value,
+            parentId: parentId,
             completed: false,
             createdAt: editingTaskId ? tasks.find(t => t.id === editingTaskId).createdAt : new Date().toISOString()
         };
@@ -761,6 +828,51 @@
             saveTasks();
             renderTasks();
         }
+    }
+
+    // Toggle menu visibility
+    function toggleMenu(taskId, event) {
+        event.stopPropagation();
+        const menuId = `menu-${taskId}`;
+        const menu = document.getElementById(menuId);
+        
+        // Close other menus
+        if (openMenuId && openMenuId !== menuId) {
+            const oldMenu = document.getElementById(openMenuId);
+            if (oldMenu) oldMenu.style.display = 'none';
+        }
+        
+        // Toggle current menu
+        if (menu.style.display === 'none' || !menu.style.display) {
+            menu.style.display = 'block';
+            openMenuId = menuId;
+        } else {
+            menu.style.display = 'none';
+            openMenuId = null;
+        }
+    }
+
+    // Close menu when clicking outside
+    document.addEventListener('click', function(event) {
+        if (openMenuId && !event.target.closest('.task-menu') && !event.target.closest('.task-menu-trigger')) {
+            const menu = document.getElementById(openMenuId);
+            if (menu) menu.style.display = 'none';
+            openMenuId = null;
+        }
+    });
+
+    // Toggle active/all filter
+    function toggleActiveFilter() {
+        showOnlyActive = !showOnlyActive;
+        const btn = document.getElementById('activeToggle');
+        if (showOnlyActive) {
+            btn.classList.add('active');
+            btn.textContent = 'Nur Aktive';
+        } else {
+            btn.classList.remove('active');
+            btn.textContent = 'Alle';
+        }
+        renderTasks();
     }
 
     // Delete task
@@ -794,6 +906,14 @@
         let filteredTasks = currentFilter === 'all' 
             ? tasks 
             : tasks.filter(t => t.category === currentFilter);
+
+        // Filter by active status
+        if (showOnlyActive) {
+            filteredTasks = filteredTasks.filter(t => !t.completed);
+        }
+
+        // Exclude subtasks from main list (they'll be shown under their parents)
+        filteredTasks = filteredTasks.filter(t => !t.parentId);
 
         if (filteredTasks.length === 0) {
             container.innerHTML = `
@@ -844,29 +964,62 @@
         const timeInfo = task.startTime && task.endTime 
             ? `${task.startTime} - ${task.endTime}` 
             : '';
-        const taskType = task.type || 'Aufgabe';
+        const isTermin = task.type === 'Termin';
+        const titleClass = isTermin ? 'style="text-decoration: underline;"' : '';
+        const subtasks = tasks.filter(t => t.parentId === task.id);
 
         return `
-            <div class="task-item ${task.completed ? 'completed' : ''}" onclick="toggleTask(${task.id})">
+            <div class="task-item ${task.completed ? 'completed' : ''}" data-task-id="${task.id}">
                 <div class="task-header">
-                    <div style="flex: 1;">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                            <span class="task-type-badge ${taskType === 'Termin' ? 'task-type-appointment' : ''}">${taskType}</span>
-                            <div class="task-title" style="margin-bottom: 0;">${task.title}</div>
+                    <div class="task-content" onclick="toggleTask(${task.id})">
+                        <div class="task-title" ${titleClass}>${task.title}</div>
+                        <div class="task-deadline">
+                            <span class="deadline-badge ${urgency.class}">${urgency.date}</span>
                         </div>
-                        ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
-                        <div class="task-meta">
-                            <div class="task-meta-item">
-                                <span class="deadline-badge ${urgency.class}">${urgency.date}</span>
-                            </div>
-                            ${timeInfo ? `<div class="task-meta-item task-time">${timeInfo}</div>` : ''}
-                            ${sortMode === 'deadline' ? `<div class="task-meta-item task-category-label">${task.category}</div>` : ''}
+                        ${timeInfo ? `<div class="task-time">${timeInfo}</div>` : '<div class="task-time-placeholder"></div>'}
+                        ${sortMode === 'deadline' ? `<div class="task-category-label">${task.category}</div>` : ''}
+                    </div>
+                    <div class="task-menu-trigger" onclick="toggleMenu(${task.id}, event)">
+                        <span class="menu-dots">⋯</span>
+                    </div>
+                </div>
+                <div class="task-menu" id="menu-${task.id}" style="display: none;">
+                    <button class="task-menu-btn" onclick="openModal(${task.id}); event.stopPropagation();">Bearbeiten</button>
+                    <button class="task-menu-btn task-menu-delete" onclick="deleteTask(${task.id}); event.stopPropagation();">Löschen</button>
+                </div>
+                ${subtasks.length > 0 ? `
+                    <div class="subtasks">
+                        ${subtasks.map(st => createSubtaskHTML(st)).join('')}
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
+
+    // Create subtask HTML
+    function createSubtaskHTML(task) {
+        const urgency = getDeadlineUrgency(task.deadline);
+        const timeInfo = task.startTime && task.endTime 
+            ? `${task.startTime} - ${task.endTime}` 
+            : '';
+
+        return `
+            <div class="subtask-item ${task.completed ? 'completed' : ''}" data-task-id="${task.id}">
+                <div class="task-header">
+                    <div class="task-content" onclick="toggleTask(${task.id})">
+                        <div class="task-title">${task.title}</div>
+                        <div class="task-deadline">
+                            <span class="deadline-badge ${urgency.class}">${urgency.date}</span>
                         </div>
+                        ${timeInfo ? `<div class="task-time">${timeInfo}</div>` : '<div class="task-time-placeholder"></div>'}
                     </div>
-                    <div class="task-actions" onclick="event.stopPropagation()">
-                        <button class="task-btn" onclick="openModal(${task.id})">Bearbeiten</button>
-                        <button class="task-btn task-btn-delete" onclick="deleteTask(${task.id})">Löschen</button>
+                    <div class="task-menu-trigger" onclick="toggleMenu(${task.id}, event)">
+                        <span class="menu-dots">⋯</span>
                     </div>
+                </div>
+                <div class="task-menu" id="menu-${task.id}" style="display: none;">
+                    <button class="task-menu-btn" onclick="openModal(${task.id}); event.stopPropagation();">Bearbeiten</button>
+                    <button class="task-menu-btn task-menu-delete" onclick="deleteTask(${task.id}); event.stopPropagation();">Löschen</button>
                 </div>
             </div>
         `;
@@ -954,6 +1107,36 @@
     function updateCategorySelect() {
         const select = document.getElementById('taskCategory');
         select.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+    }
+
+    function handleTypeChange() {
+        const type = document.getElementById('taskType').value;
+        const parentTaskGroup = document.getElementById('parentTaskGroup');
+        const parentSubtaskGroup = document.getElementById('parentSubtaskGroup');
+        
+        if (type === 'Aufgabe') {
+            parentTaskGroup.style.display = 'block';
+            parentSubtaskGroup.style.display = 'block';
+            updateParentSelects();
+        } else {
+            parentTaskGroup.style.display = 'none';
+            parentSubtaskGroup.style.display = 'none';
+        }
+    }
+
+    function updateParentSelects() {
+        const parentTaskSelect = document.getElementById('parentTask');
+        const parentSubtaskSelect = document.getElementById('parentSubtask');
+        
+        // Get all Termine for parent task dropdown
+        const termine = tasks.filter(t => t.type === 'Termin' && !t.completed);
+        parentTaskSelect.innerHTML = '<option value="">Keine</option>' + 
+            termine.map(t => `<option value="${t.id}">${t.title}</option>`).join('');
+        
+        // Get all Aufgaben without parents for subtask dropdown
+        const aufgaben = tasks.filter(t => t.type === 'Aufgabe' && !t.parentId && !t.completed);
+        parentSubtaskSelect.innerHTML = '<option value="">Keine</option>' + 
+            aufgaben.map(t => `<option value="${t.id}">${t.title}</option>`).join('');
     }
 
     function openCategoryManager() {
